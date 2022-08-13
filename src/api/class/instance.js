@@ -323,9 +323,10 @@ class WhatsAppInstance {
         }
     }
 
-    getWhatsAppId(id) {
-        if (id.includes('@g.us') || id.includes('@s.whatsapp.net')) return id
-        return id.includes('-') ? `${id}@g.us` : `${id}@s.whatsapp.net`
+    async getWhatsAppId(id) {
+        const [result] = await this.instance.sock?.onWhatsApp(id)
+        if (!result?.exists) throw new Error('no account exists')
+        return result?.jid
     }
 
     async verifyId(id) {
@@ -336,7 +337,7 @@ class WhatsAppInstance {
     }
 
     async sendTextMessage(to, message) {
-        await this.verifyId(this.getWhatsAppId(to))
+        to = await this.getWhatsAppId(to)
         const data = await this.instance.sock?.sendMessage(
             this.getWhatsAppId(to),
             { text: message }
@@ -345,7 +346,7 @@ class WhatsAppInstance {
     }
 
     async sendMediaFile(to, file, type, caption = '', filename) {
-        await this.verifyId(this.getWhatsAppId(to))
+        to = await this.getWhatsAppId(to)
         const data = await this.instance.sock?.sendMessage(
             this.getWhatsAppId(to),
             {
@@ -360,7 +361,7 @@ class WhatsAppInstance {
     }
 
     async sendUrlMediaFile(to, url, type, mimeType, caption = '') {
-        await this.verifyId(this.getWhatsAppId(to))
+        to = await this.getWhatsAppId(to)
 
         const data = await this.instance.sock?.sendMessage(
             this.getWhatsAppId(to),
@@ -393,7 +394,7 @@ class WhatsAppInstance {
     }
 
     async blockUnblock(to, data) {
-        await this.verifyId(this.getWhatsAppId(to))
+        to = await this.getWhatsAppId(to)
         const status = await this.instance.sock?.updateBlockStatus(
             this.getWhatsAppId(to),
             data
@@ -402,7 +403,7 @@ class WhatsAppInstance {
     }
 
     async sendButtonMessage(to, data) {
-        await this.verifyId(this.getWhatsAppId(to))
+        to = await this.getWhatsAppId(to)
         const result = await this.instance.sock?.sendMessage(
             this.getWhatsAppId(to),
             {
@@ -415,7 +416,7 @@ class WhatsAppInstance {
     }
 
     async sendContactMessage(to, data) {
-        await this.verifyId(this.getWhatsAppId(to))
+        to = await this.getWhatsAppId(to)
         const vcard = generateVC(data)
         const result = await this.instance.sock?.sendMessage(
             await this.getWhatsAppId(to),
@@ -430,7 +431,7 @@ class WhatsAppInstance {
     }
 
     async sendListMessage(to, data) {
-        await this.verifyId(this.getWhatsAppId(to))
+        to = await this.getWhatsAppId(to)
         const result = await this.instance.sock?.sendMessage(
             this.getWhatsAppId(to),
             {
@@ -445,7 +446,7 @@ class WhatsAppInstance {
     }
 
     async sendMediaButtonMessage(to, data) {
-        await this.verifyId(this.getWhatsAppId(to))
+        to = await this.getWhatsAppId(to)
 
         const result = await this.instance.sock?.sendMessage(
             this.getWhatsAppId(to),
@@ -463,7 +464,7 @@ class WhatsAppInstance {
     }
 
     async setStatus(status, to) {
-        await this.verifyId(this.getWhatsAppId(to))
+        to = await this.getWhatsAppId(to)
 
         const result = await this.instance.sock?.sendPresenceUpdate(status, to)
         return result
